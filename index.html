@@ -183,6 +183,7 @@
             padding: 25px;
             border-radius: 10px;
             border: 1px solid #2a3547;
+            min-height: 280px; /* ajuda a garantir altura ao canvas responsivo */
         }
 
         .chart-title {
@@ -382,13 +383,8 @@
             font-weight: 600;
         }
 
-        .content-section {
-            display: none;
-        }
-
-        .content-section.active {
-            display: block;
-        }
+        .content-section { display: none; }
+        .content-section.active { display: block; }
 
         .timeline-container {
             background: #0f1823;
@@ -411,9 +407,7 @@
             font-size: 14px;
         }
 
-        .timeline-content {
-            flex: 1;
-        }
+        .timeline-content { flex: 1; }
 
         .timeline-title {
             font-size: 16px;
@@ -432,17 +426,8 @@
             flex-wrap: wrap;
         }
 
-        .filter-item {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .filter-label {
-            font-size: 12px;
-            color: #8892a0;
-            text-transform: uppercase;
-        }
+        .filter-item { display: flex; flex-direction: column; gap: 5px; }
+        .filter-label { font-size: 12px; color: #8892a0; text-transform: uppercase; }
 
         .report-card {
             background: #0f1823;
@@ -454,15 +439,9 @@
             transition: all 0.3s;
         }
 
-        .report-card:hover {
-            border-color: #00d4ff;
-            transform: translateX(5px);
-        }
+        .report-card:hover { border-color: #00d4ff; transform: translateX(5px); }
 
-        .report-title {
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
+        .report-title { font-size: 18px; margin-bottom: 10px; }
 
         .report-meta {
             display: flex;
@@ -477,9 +456,7 @@
             100% { transform: scale(1); }
         }
 
-        .pulse {
-            animation: pulse 2s infinite;
-        }
+        .pulse { animation: pulse 2s infinite; }
 
         .alert {
             padding: 15px 20px;
@@ -516,16 +493,16 @@
     <div class="sidebar">
         <div class="menu-section">
             <div class="menu-title">ANÁLISE DE QUALIDADE</div>
-            <div class="menu-item active" onclick="showSection('dashboard')">📊 Dashboard</div>
-            <div class="menu-item" onclick="showSection('historico')">📈 Análise Histórica</div>
-            <div class="menu-item" onclick="showSection('predicao')">🔮 Predição</div>
-            <div class="menu-item" onclick="showSection('otimizacao')">⚙️ Otimização</div>
+            <div class="menu-item active" onclick="showSection(event, 'dashboard')">📊 Dashboard</div>
+            <div class="menu-item" onclick="showSection(event, 'historico')">📈 Análise Histórica</div>
+            <div class="menu-item" onclick="showSection(event, 'predicao')">🔮 Predição</div>
+            <div class="menu-item" onclick="showSection(event, 'otimizacao')">⚙️ Otimização</div>
         </div>
         <div class="menu-section">
             <div class="menu-title">RELATÓRIOS</div>
-            <div class="menu-item" onclick="showSection('relatorio-qualidade')">📄 Histórico de Qualidade</div>
-            <div class="menu-item" onclick="showSection('relatorio-solo')">📊 Análise Solo-Fibra</div>
-            <div class="menu-item" onclick="showSection('relatorio-roi')">💰 ROI por Fazenda</div>
+            <div class="menu-item" onclick="showSection(event, 'relatorio-qualidade')">📄 Histórico de Qualidade</div>
+            <div class="menu-item" onclick="showSection(event, 'relatorio-solo')">📊 Análise Solo-Fibra</div>
+            <div class="menu-item" onclick="showSection(event, 'relatorio-roi')">💰 ROI por Fazenda</div>
         </div>
     </div>
 
@@ -701,9 +678,7 @@
             </div>
 
             <div class="simulator-card">
-                <div class="simulator-title">
-                    🔬 Simulador Avançado de Qualidade
-                </div>
+                <div class="simulator-title">🔬 Simulador Avançado de Qualidade</div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
                     <div>
@@ -990,28 +965,28 @@
                             <td>Nitrogênio</td>
                             <td>Comprimento</td>
                             <td>0.72</td>
-                            <td>p < 0.001</td>
+                            <td>p &lt; 0.001</td>
                             <td>Forte correlação positiva</td>
                         </tr>
                         <tr>
                             <td>Fósforo</td>
                             <td>Resistência</td>
                             <td>0.65</td>
-                            <td>p < 0.001</td>
+                            <td>p &lt; 0.001</td>
                             <td>Correlação positiva moderada</td>
                         </tr>
                         <tr>
                             <td>Potássio</td>
                             <td>Uniformidade</td>
                             <td>0.58</td>
-                            <td>p < 0.01</td>
+                            <td>p &lt; 0.01</td>
                             <td>Correlação positiva moderada</td>
                         </tr>
                         <tr>
                             <td>pH</td>
                             <td>Micronaire</td>
                             <td>-0.42</td>
-                            <td>p < 0.05</td>
+                            <td>p &lt; 0.05</td>
                             <td>Correlação negativa fraca</td>
                         </tr>
                     </tbody>
@@ -1104,14 +1079,38 @@
     </div>
 
     <script>
-        // Initialize all charts
-        let correlationChart, evolutionChart, trendsChart, sensitivityChart, soilMatrixChart, roiChart;
+        // ====== GERENCIAMENTO DE GRÁFICOS ======
+        const charts = {
+            correlation: null,
+            evolution: null,
+            trends: null,
+            sensitivity: null,
+            soilMatrix: null,
+            roi: null,
+        };
 
-        function initializeCharts() {
-            // Correlation Chart
-            const correlationCtx = document.getElementById('correlationChart')?.getContext('2d');
+        function getVisibleCtx(id) {
+            const el = document.getElementById(id);
+            if (!el) return null;
+            const section = el.closest('.content-section');
+            const rect = el.getBoundingClientRect();
+            const isVisible = section && section.classList.contains('active') && rect.width > 0 && rect.height > 0;
+            return isVisible ? el.getContext('2d') : null;
+        }
+
+        function destroyChart(key) {
+            if (charts[key]) {
+                charts[key].destroy();
+                charts[key] = null;
+            }
+        }
+
+        // ----- Criadores por seção -----
+        function createDashboardCharts() {
+            const correlationCtx = getVisibleCtx('correlationChart');
             if (correlationCtx) {
-                correlationChart = new Chart(correlationCtx, {
+                destroyChart('correlation');
+                charts.correlation = new Chart(correlationCtx, {
                     type: 'scatter',
                     data: {
                         datasets: [
@@ -1147,43 +1146,29 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                labels: { color: '#ffffff' }
-                            }
-                        },
+                        plugins: { legend: { labels: { color: '#ffffff' } } },
                         scales: {
                             x: {
-                                title: {
-                                    display: true,
-                                    text: 'Nitrogênio (kg/ha)',
-                                    color: '#8892a0'
-                                },
+                                title: { display: true, text: 'Nitrogênio (kg/ha)', color: '#8892a0' },
                                 grid: { color: '#2a3547' },
                                 ticks: { color: '#8892a0' },
-                                min: 110,
-                                max: 200
+                                min: 110, max: 200
                             },
                             y: {
-                                title: {
-                                    display: true,
-                                    text: 'Comprimento da Fibra (mm)',
-                                    color: '#8892a0'
-                                },
+                                title: { display: true, text: 'Comprimento da Fibra (mm)', color: '#8892a0' },
                                 grid: { color: '#2a3547' },
                                 ticks: { color: '#8892a0' },
-                                min: 25,
-                                max: 31
+                                min: 25, max: 31
                             }
                         }
                     }
                 });
             }
 
-            // Evolution Chart
-            const evolutionCtx = document.getElementById('evolutionChart')?.getContext('2d');
+            const evolutionCtx = getVisibleCtx('evolutionChart');
             if (evolutionCtx) {
-                evolutionChart = new Chart(evolutionCtx, {
+                destroyChart('evolution');
+                charts.evolution = new Chart(evolutionCtx, {
                     type: 'line',
                     data: {
                         labels: ['Jan/22', 'Jul/22', 'Jan/23', 'Jul/23', 'Jan/24', 'Jul/24'],
@@ -1207,235 +1192,141 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                labels: { color: '#ffffff' }
-                            }
-                        },
+                        plugins: { legend: { labels: { color: '#ffffff' } } },
                         scales: {
-                            x: {
-                                grid: { color: '#2a3547' },
-                                ticks: { color: '#8892a0' }
-                            },
+                            x: { grid: { color: '#2a3547' }, ticks: { color: '#8892a0' } },
                             y: {
-                                title: {
-                                    display: true,
-                                    text: 'Índice de Qualidade (%)',
-                                    color: '#8892a0'
-                                },
-                                grid: { color: '#2a3547' },
-                                ticks: { color: '#8892a0' },
-                                min: 70,
-                                max: 90
+                                title: { display: true, text: 'Índice de Qualidade (%)', color: '#8892a0' },
+                                grid: { color: '#2a3547' }, ticks: { color: '#8892a0' },
+                                min: 70, max: 90
                             }
                         }
                     }
                 });
             }
+        }
 
-            // Trends Chart
-            const trendsCtx = document.getElementById('trendsChart')?.getContext('2d');
+        function createHistoricoCharts() {
+            const trendsCtx = getVisibleCtx('trendsChart');
             if (trendsCtx) {
-                trendsChart = new Chart(trendsCtx, {
+                destroyChart('trends');
+                charts.trends = new Chart(trendsCtx, {
                     type: 'line',
                     data: {
-                        labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+                        labels: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
                         datasets: [
-                            {
-                                label: 'Comprimento',
-                                data: [27.5, 27.8, 28.1, 28.3, 28.5, 28.7, 28.9, 29.0, 29.2, 29.3, 29.4, 29.5],
-                                borderColor: '#00d4ff',
-                                tension: 0.4
-                            },
-                            {
-                                label: 'Resistência',
-                                data: [28.5, 28.8, 29.2, 29.5, 29.8, 30.1, 30.3, 30.5, 30.7, 30.9, 31.0, 31.2],
-                                borderColor: '#10b981',
-                                tension: 0.4
-                            },
-                            {
-                                label: 'Uniformidade',
-                                data: [80.2, 80.5, 80.8, 81.2, 81.5, 81.8, 82.0, 82.3, 82.5, 82.7, 82.9, 83.0],
-                                borderColor: '#eab308',
-                                tension: 0.4
-                            }
+                            { label: 'Comprimento', data: [27.5,27.8,28.1,28.3,28.5,28.7,28.9,29.0,29.2,29.3,29.4,29.5], borderColor: '#00d4ff', tension: 0.4 },
+                            { label: 'Resistência', data: [28.5,28.8,29.2,29.5,29.8,30.1,30.3,30.5,30.7,30.9,31.0,31.2], borderColor: '#10b981', tension: 0.4 },
+                            { label: 'Uniformidade', data: [80.2,80.5,80.8,81.2,81.5,81.8,82.0,82.3,82.5,82.7,82.9,83.0], borderColor: '#eab308', tension: 0.4 }
                         ]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                labels: { color: '#ffffff' }
-                            }
-                        },
+                        plugins: { legend: { labels: { color: '#ffffff' } } },
                         scales: {
-                            x: {
-                                grid: { color: '#2a3547' },
-                                ticks: { color: '#8892a0' }
-                            },
-                            y: {
-                                grid: { color: '#2a3547' },
-                                ticks: { color: '#8892a0' }
-                            }
+                            x: { grid: { color: '#2a3547' }, ticks: { color: '#8892a0' } },
+                            y: { grid: { color: '#2a3547' }, ticks: { color: '#8892a0' } }
                         }
                     }
                 });
             }
+        }
 
-            // Sensitivity Chart
-            const sensitivityCtx = document.getElementById('sensitivityChart')?.getContext('2d');
+        function createPredicaoCharts() {
+            const sensitivityCtx = getVisibleCtx('sensitivityChart');
             if (sensitivityCtx) {
-                sensitivityChart = new Chart(sensitivityCtx, {
+                destroyChart('sensitivity');
+                charts.sensitivity = new Chart(sensitivityCtx, {
                     type: 'bar',
                     data: {
-                        labels: ['Nitrogênio', 'Fósforo', 'Potássio', 'pH', 'Irrigação', 'Densidade'],
+                        labels: ['Nitrogênio','Fósforo','Potássio','pH','Irrigação','Densidade'],
                         datasets: [{
                             label: 'Impacto na Qualidade (%)',
                             data: [8.5, 6.2, 4.8, 3.5, 7.2, 2.9],
-                            backgroundColor: [
-                                '#00d4ff', '#10b981', '#eab308', '#ef4444', '#3b82f6', '#a855f7'
-                            ]
+                            backgroundColor: ['#00d4ff','#10b981','#eab308','#ef4444','#3b82f6','#a855f7']
                         }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        },
+                        plugins: { legend: { display: false } },
                         scales: {
-                            x: {
-                                grid: { color: '#2a3547' },
-                                ticks: { color: '#8892a0' }
-                            },
+                            x: { grid: { color: '#2a3547' }, ticks: { color: '#8892a0' } },
                             y: {
-                                title: {
-                                    display: true,
-                                    text: 'Impacto (%)',
-                                    color: '#8892a0'
-                                },
-                                grid: { color: '#2a3547' },
-                                ticks: { color: '#8892a0' }
+                                title: { display: true, text: 'Impacto (%)', color: '#8892a0' },
+                                grid: { color: '#2a3547' }, ticks: { color: '#8892a0' }
                             }
                         }
                     }
                 });
             }
+        }
 
-            // Soil Matrix Chart
-            const soilMatrixCtx = document.getElementById('soilMatrixChart')?.getContext('2d');
+        function createRelatorioSoloCharts() {
+            const soilMatrixCtx = getVisibleCtx('soilMatrixChart');
             if (soilMatrixCtx) {
-                soilMatrixChart = new Chart(soilMatrixCtx, {
+                destroyChart('soilMatrix');
+                charts.soilMatrix = new Chart(soilMatrixCtx, {
                     type: 'bubble',
                     data: {
                         datasets: [
-                            {
-                                label: 'N × Comprimento',
-                                data: [{x: 1, y: 1, r: 15}],
-                                backgroundColor: 'rgba(0, 212, 255, 0.6)'
-                            },
-                            {
-                                label: 'P × Resistência',
-                                data: [{x: 2, y: 2, r: 13}],
-                                backgroundColor: 'rgba(16, 185, 129, 0.6)'
-                            },
-                            {
-                                label: 'K × Uniformidade',
-                                data: [{x: 3, y: 3, r: 11}],
-                                backgroundColor: 'rgba(234, 179, 8, 0.6)'
-                            },
-                            {
-                                label: 'pH × Micronaire',
-                                data: [{x: 4, y: 4, r: 8}],
-                                backgroundColor: 'rgba(239, 68, 68, 0.6)'
-                            }
+                            { label: 'N × Comprimento', data: [{x:1,y:1,r:15}], backgroundColor: 'rgba(0, 212, 255, 0.6)' },
+                            { label: 'P × Resistência', data: [{x:2,y:2,r:13}], backgroundColor: 'rgba(16, 185, 129, 0.6)' },
+                            { label: 'K × Uniformidade', data: [{x:3,y:3,r:11}], backgroundColor: 'rgba(234, 179, 8, 0.6)' },
+                            { label: 'pH × Micronaire', data: [{x:4,y:4,r:8}], backgroundColor: 'rgba(239, 68, 68, 0.6)' }
                         ]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                labels: { color: '#ffffff' }
-                            }
-                        },
+                        plugins: { legend: { labels: { color: '#ffffff' } } },
                         scales: {
                             x: {
-                                title: {
-                                    display: true,
-                                    text: 'Nutriente',
-                                    color: '#8892a0'
-                                },
+                                title: { display: true, text: 'Nutriente', color: '#8892a0' },
                                 grid: { color: '#2a3547' },
-                                ticks: { 
+                                ticks: {
                                     color: '#8892a0',
-                                    callback: function(value) {
-                                        const labels = ['', 'N', 'P', 'K', 'pH'];
-                                        return labels[value] || '';
-                                    }
-                                }
+                                    callback: (value) => (['','N','P','K','pH'][value] ?? '')
+                                },
+                                min: 0, max: 5, ticks: { stepSize: 1, color: '#8892a0' }
                             },
                             y: {
-                                title: {
-                                    display: true,
-                                    text: 'Parâmetro',
-                                    color: '#8892a0'
-                                },
+                                title: { display: true, text: 'Parâmetro', color: '#8892a0' },
                                 grid: { color: '#2a3547' },
-                                ticks: { 
+                                ticks: {
+                                    stepSize: 1,
                                     color: '#8892a0',
-                                    callback: function(value) {
-                                        const labels = ['', 'Comp.', 'Resist.', 'Unif.', 'Micro.'];
-                                        return labels[value] || '';
-                                    }
-                                }
+                                    callback: (value) => (['','Comp.','Resist.','Unif.','Micro.'][value] ?? '')
+                                },
+                                min: 0, max: 5
                             }
                         }
                     }
                 });
             }
+        }
 
-            // ROI Chart
-            const roiCtx = document.getElementById('roiChart')?.getContext('2d');
+        function createRelatorioROICharts() {
+            const roiCtx = getVisibleCtx('roiChart');
             if (roiCtx) {
-                roiChart = new Chart(roiCtx, {
+                destroyChart('roi');
+                charts.roi = new Chart(roiCtx, {
                     type: 'bar',
                     data: {
-                        labels: ['Santa Helena', 'São José', 'Boa Vista', 'Nova Esperança'],
-                        datasets: [
-                            {
-                                label: 'ROI (%)',
-                                data: [405, 382, 302, 264],
-                                backgroundColor: ['#10b981', '#10b981', '#eab308', '#eab308']
-                            }
-                        ]
+                        labels: ['Santa Helena','São José','Boa Vista','Nova Esperança'],
+                        datasets: [{ label: 'ROI (%)', data: [405, 382, 302, 264], backgroundColor: ['#10b981','#10b981','#eab308','#eab308'] }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        },
+                        plugins: { legend: { display: false } },
                         scales: {
-                            x: {
-                                grid: { color: '#2a3547' },
-                                ticks: { color: '#8892a0' }
-                            },
+                            x: { grid: { color: '#2a3547' }, ticks: { color: '#8892a0' } },
                             y: {
-                                title: {
-                                    display: true,
-                                    text: 'ROI (%)',
-                                    color: '#8892a0'
-                                },
-                                grid: { color: '#2a3547' },
-                                ticks: { color: '#8892a0' },
-                                min: 0,
-                                max: 500
+                                title: { display: true, text: 'ROI (%)', color: '#8892a0' },
+                                grid: { color: '#2a3547' }, ticks: { color: '#8892a0' },
+                                min: 0, max: 500
                             }
                         }
                     }
@@ -1443,87 +1334,84 @@
             }
         }
 
-        // Show/hide sections
-        function showSection(sectionName) {
-            // Hide all sections
-            document.querySelectorAll('.content-section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // Remove active class from all menu items
-            document.querySelectorAll('.menu-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            // Show selected section
-            document.getElementById(sectionName + '-section').classList.add('active');
-            
-            // Add active class to clicked menu item
-            event.target.classList.add('active');
-            
-            // Reinitialize charts when switching sections
-            setTimeout(() => {
-                initializeCharts();
-            }, 100);
+        function initializeChartsForSection(sectionName) {
+            if (sectionName === 'dashboard') createDashboardCharts();
+            if (sectionName === 'historico') createHistoricoCharts();
+            if (sectionName === 'predicao') createPredicaoCharts();
+            if (sectionName === 'relatorio-solo') createRelatorioSoloCharts();
+            if (sectionName === 'relatorio-roi') createRelatorioROICharts();
+            // 'relatorio-qualidade' não possui gráficos
         }
 
-        // Update prediction function
+        // ====== TROCA DE SEÇÕES (corrigido) ======
+        function showSection(evt, sectionName) {
+            document.querySelectorAll('.content-section').forEach(section => section.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+
+            const targetSection = document.getElementById(sectionName + '-section');
+            if (targetSection) targetSection.classList.add('active');
+            if (evt && evt.currentTarget) evt.currentTarget.classList.add('active');
+
+            // esperar o DOM aplicar o display antes de criar gráficos
+            setTimeout(() => initializeChartsForSection(sectionName), 0);
+        }
+
+        // ====== PREDIÇÃO (tipagem numérica p/ evitar NaN/concat) ======
         function updatePrediction() {
-            const n = document.getElementById('nitrogen-pred').value;
-            const p = document.getElementById('phosphorus-pred').value;
-            const k = document.getElementById('potassium-pred').value;
-            const ph = document.getElementById('ph-pred').value;
-            const density = document.getElementById('density-pred').value;
-            const irrigation = document.getElementById('irrigation-pred').value;
-            
-            // Update displayed values
+            const n = Number(document.getElementById('nitrogen-pred').value);
+            const p = Number(document.getElementById('phosphorus-pred').value);
+            const k = Number(document.getElementById('potassium-pred').value);
+            const ph = Number(document.getElementById('ph-pred').value);
+            const density = Number(document.getElementById('density-pred').value);
+            const irrigation = Number(document.getElementById('irrigation-pred').value);
+
             document.getElementById('nitrogen-pred-value').textContent = n;
             document.getElementById('phosphorus-pred-value').textContent = p;
             document.getElementById('potassium-pred-value').textContent = k;
             document.getElementById('ph-pred-value').textContent = (ph/10).toFixed(1);
             document.getElementById('density-pred-value').textContent = (density/1000) + 'k';
             document.getElementById('irrigation-pred-value').textContent = irrigation;
-            
-            // Simulate predictions
+
             const baseLength = 27.0;
             const baseStrength = 28.0;
             const baseMicronaire = 4.5;
             const baseUniformity = 81.4;
-            
-            const length = (baseLength + n * 0.015 + p * 0.008 + k * 0.005 + (irrigation-600) * 0.001).toFixed(1);
-            const strength = (baseStrength + n * 0.018 + p * 0.010 + k * 0.007 + (density-110000) * 0.00001).toFixed(1);
-            const micronaire = (baseMicronaire - n * 0.002 + p * 0.001 - (ph-62) * 0.01).toFixed(1);
-            const uniformity = (baseUniformity + k * 0.02 + (irrigation-600) * 0.002).toFixed(1);
-            
-            // Update results
+
+            const length = Number((baseLength + n*0.015 + p*0.008 + k*0.005 + (irrigation-600)*0.001).toFixed(1));
+            const strength = Number((baseStrength + n*0.018 + p*0.010 + k*0.007 + (density-110000)*0.00001).toFixed(1));
+            const micronaire = Number((baseMicronaire - n*0.002 + p*0.001 - (ph-62)*0.01).toFixed(1));
+            const uniformity = Number((baseUniformity + k*0.02 + (irrigation-600)*0.002).toFixed(1));
+
             document.getElementById('length-pred-result').textContent = length;
             document.getElementById('strength-pred-result').textContent = strength;
             document.getElementById('micronaire-pred-result').textContent = micronaire;
             document.getElementById('uniformity-pred-result').textContent = uniformity;
-            
-            // Calculate changes
+
             const lengthChange = ((length - baseLength) / baseLength * 100).toFixed(1);
             const strengthChange = ((strength - baseStrength) / baseStrength * 100).toFixed(1);
             const uniformityChange = ((uniformity - baseUniformity) / baseUniformity * 100).toFixed(1);
-            
-            document.getElementById('length-pred-change').textContent = lengthChange > 0 ? `↑ ${lengthChange}%` : `↓ ${Math.abs(lengthChange)}%`;
-            document.getElementById('length-pred-change').className = lengthChange > 0 ? 'result-change positive' : 'result-change negative';
-            
-            document.getElementById('strength-pred-change').textContent = strengthChange > 0 ? `↑ ${strengthChange}%` : `↓ ${Math.abs(strengthChange)}%`;
-            document.getElementById('strength-pred-change').className = strengthChange > 0 ? 'result-change positive' : 'result-change negative';
-            
-            document.getElementById('uniformity-pred-change').textContent = uniformityChange > 0 ? `↑ ${uniformityChange}%` : `↓ ${Math.abs(uniformityChange)}%`;
-            document.getElementById('uniformity-pred-change').className = uniformityChange > 0 ? 'result-change positive' : 'result-change negative';
-            
-            // Update micronaire status
+
+            const lenEl = document.getElementById('length-pred-change');
+            lenEl.textContent = lengthChange > 0 ? `↑ ${lengthChange}%` : `↓ ${Math.abs(lengthChange)}%`;
+            lenEl.className = lengthChange > 0 ? 'result-change positive' : 'result-change negative';
+
+            const strEl = document.getElementById('strength-pred-change');
+            strEl.textContent = strengthChange > 0 ? `↑ ${strengthChange}%` : `↓ ${Math.abs(strengthChange)}%`;
+            strEl.className = strengthChange > 0 ? 'result-change positive' : 'result-change negative';
+
+            const uniEl = document.getElementById('uniformity-pred-change');
+            uniEl.textContent = uniformityChange > 0 ? `↑ ${uniformityChange}%` : `↓ ${Math.abs(uniformityChange)}%`;
+            uniEl.className = uniformityChange > 0 ? 'result-change positive' : 'result-change negative';
+
             const micStatus = micronaire >= 3.8 && micronaire <= 4.5 ? 'Ideal' : micronaire < 3.8 ? 'Baixo' : 'Alto';
-            document.getElementById('micronaire-pred-change').textContent = micStatus;
-            document.getElementById('micronaire-pred-change').style.color = micStatus === 'Ideal' ? '#10b981' : '#eab308';
+            const micEl = document.getElementById('micronaire-pred-change');
+            micEl.textContent = micStatus;
+            micEl.style.color = micStatus === 'Ideal' ? '#10b981' : '#eab308';
         }
 
-        // Initialize on page load
+        // Inicializa apenas os gráficos do dashboard na carga inicial
         window.addEventListener('load', () => {
-            initializeCharts();
+            initializeChartsForSection('dashboard');
         });
     </script>
 </body>
